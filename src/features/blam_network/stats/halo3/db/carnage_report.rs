@@ -1,5 +1,5 @@
 use serde::Serialize;
-use sqlx::{FromRow, Error, Row};
+use sqlx::{FromRow, Error};
 use uuid::Uuid;
 use crate::features::common::database::get_connection_pool;
 

@@ -12,4 +12,8 @@ impl APIFeature for BlamNetwork {
             get(stats::halo3::routes::get_carnage_report::get_carnage_report),
         )
     }
+
+    fn get_name(&self) -> &str {
+        "Blam Network APIs"
+    }
 }

@@ -38,7 +38,7 @@ pub async fn get_carnage_report(Path(carnage_report_id): Path<Uuid>) -> impl Int
 
 
     match (players_or_error, report_or_error, kills_or_error, teams_or_error) {
-        (Ok(players), Ok(mut report), Ok(kills), Ok(teams)) => {
+        (Ok(players), Ok(report), Ok(kills), Ok(teams)) => {
             Json(CarnageReport {
                 team_game: report.team_game,
                 start_time: report.start_time,
