@@ -1,0 +1,27 @@
+services:
+#  api:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: sunrise
+#    ports:
+#      - "8000:8000" # Map the API service to localhost:8000
+#    environment:
+#      DATABASE_URL: postgres://postgres:password@db:5432/sunrise_db
+#    depends_on:
+#      - db
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    ports:
+      - "5432:5432" # Map the PostgreSQL service to localhost:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sunrise_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
