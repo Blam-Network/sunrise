@@ -9,7 +9,7 @@ use blf_lib::types::array::StaticArray;
 #[Header("dcha", 3.1)]
 #[brw(big)]
 pub struct s_blf_chunk_daily_challenges {
-    pub unknown1: StaticArray<u8, 0x24>,
+    pub unknown1: StaticArray<u8, 24>,
     #[bw(try_calc(u8::try_from(daily_challenges.len())))]
     daily_challenge_count: u8,
     pub unknown2: u8,
