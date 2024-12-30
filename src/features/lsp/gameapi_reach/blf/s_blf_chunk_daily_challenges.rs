@@ -12,7 +12,7 @@ pub struct s_blf_chunk_daily_challenges {
     pub unknown1: StaticArray<u8, 0x24>,
     #[bw(try_calc(u8::try_from(daily_challenges.len())))]
     daily_challenge_count: u8,
-    pub unknown2: u32,
+    pub unknown2: u8,
     #[br(count = daily_challenge_count)]
     pub daily_challenges: Vec<s_blf_chunk_daily_challenges_challenge>,
 }
