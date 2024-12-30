@@ -9,6 +9,7 @@ use axum::{
 };
 use axum::body::HttpBody;
 use axum::extract::Request;
+use dotenv::dotenv;
 use hyper::body::Incoming;
 use crate::features::blam_network::BlamNetwork;
 use crate::features::common::database::migrations::run_migrations;
@@ -42,6 +43,8 @@ pub fn get_private_api_features() -> Vec<Box<dyn PrivateAPIFeature>> {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     run_migrations().await.unwrap();
     println!("Migrations applied successfully.");
 
