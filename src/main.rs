@@ -25,12 +25,16 @@ use crate::features::lsp::usr::UserStorageServer;
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server;
 use tower::{Service, ServiceExt};
+use crate::features::lsp::gameapi_reach::GameAPIReach;
+use crate::features::lsp::reach_presence_api::ReachPresenceAPI;
 
 pub fn get_api_features() -> Vec<Box<dyn APIFeature>> {
     let mut vector = Vec::<Box<dyn APIFeature>>::new();
     vector.push(Box::new(TitleStorageServer {}));
     vector.push(Box::new(BlamNetwork {}));
     vector.push(Box::new(UserStorageServer {}));
+    vector.push(Box::new(GameAPIReach {}));
+    vector.push(Box::new(ReachPresenceAPI {}));
     vector
 }
 

@@ -1,3 +1,2 @@
-pub mod get_recent_players;
-pub mod get_user;
-pub mod get_machine;
+pub mod halo3;
+pub mod halo_reach;
