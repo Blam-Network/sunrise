@@ -3,8 +3,8 @@ mod features;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use axum::{
-    Router,
     routing::get,
+    Router,
 };
 use axum::extract::Request;
 use dotenv::dotenv;

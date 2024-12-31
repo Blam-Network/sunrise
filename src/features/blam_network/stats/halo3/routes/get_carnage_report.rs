@@ -41,7 +41,7 @@ pub async fn get_carnage_report(Path(carnage_report_id): Path<Uuid>) -> impl Int
                 game_variant_name: report.game_variant_name,
                 map_variant_name: report.map_variant_name,
                 map_id: report.map_id,
-                hopper_name: None,
+                hopper_name: report.hopper_name,
                 game_engine: report.game_engine,
                 file_type: report.file_type,
                 duration: report.duration,
