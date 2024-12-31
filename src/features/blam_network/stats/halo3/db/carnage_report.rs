@@ -90,7 +90,7 @@ pub struct CarnageReport {
     pub game_variant_name: Option<String>,
     pub map_variant_name: Option<String>,
     pub map_id: Option<i32>,
-    // pub hopper_name: Option<String>,
+    pub hopper_name: Option<String>,
     pub game_engine: i16,
     pub file_type: i32,
     pub duration: String,
@@ -105,13 +105,13 @@ pub async fn fetch_carnage_report(carnage_report_id: Uuid) -> Result<CarnageRepo
             crgv.name AS game_variant_name,
             cr.map_variant_name,
             cr.map_id,
-            -- crmo.hopper_name,
+            crmo.hopper_name,
             crgv.game_engine,
             crgv.file_type,
             TO_CHAR(AGE(cr.finish_time, cr.start_time), 'HH24:MI:SS') AS duration
         FROM
             halo3.carnage_report cr
-        -- JOIN halo3.carnage_report_matchmaking_options crmo ON cr.id = crmo.id
+        LEFT JOIN halo3.carnage_report_matchmaking_options crmo ON cr.id = crmo.id
         JOIN halo3.carnage_report_game_variant crgv ON cr.id = crgv.id
         WHERE cr.id = $1
     "#;

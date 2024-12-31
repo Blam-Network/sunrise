@@ -5,11 +5,6 @@ use uuid::Uuid;
 use crate::features::blam_network::stats::halo3::db::carnage_report::{CarnageReportPlayer, CarnageReportTeam, KillEvent};
 
 #[derive(Serialize)]
-struct ErrorResponse {
-    error: String,
-}
-
-#[derive(Serialize)]
 struct CarnageReport {
     pub team_game: bool,
     pub start_time: chrono::NaiveDateTime,

@@ -5,9 +5,7 @@ use std::net::SocketAddr;
 use axum::{
     Router,
     routing::get,
-    response::IntoResponse,
 };
-use axum::body::HttpBody;
 use axum::extract::Request;
 use dotenv::dotenv;
 use hyper::body::Incoming;
@@ -25,6 +23,7 @@ use crate::features::lsp::usr::UserStorageServer;
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server;
 use tower::{Service, ServiceExt};
+use crate::features::lsp::fileshare::FileShareAPI;
 use crate::features::lsp::gameapi_reach::GameAPIReach;
 use crate::features::lsp::reach_presence_api::ReachPresenceAPI;
 
@@ -35,6 +34,7 @@ pub fn get_api_features() -> Vec<Box<dyn APIFeature>> {
     vector.push(Box::new(UserStorageServer {}));
     vector.push(Box::new(GameAPIReach {}));
     vector.push(Box::new(ReachPresenceAPI {}));
+    vector.push(Box::new(FileShareAPI {}));
     vector
 }
 
