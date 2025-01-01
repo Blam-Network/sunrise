@@ -137,7 +137,7 @@ pub async fn get_kill_events(carnage_report_id: Uuid) -> Result<Vec<KillEvent>, 
         SELECT
             crp.player_name AS killer,
             crp2.player_name AS killed,
-            (crek."time" / 60) || ':' || LPAD((crek."time" % 60)::TEXT, 2, '0') AS time,
+            crek."time",
             crek.kill_type
         FROM
             halo3.carnage_report_event_kill crek
