@@ -122,13 +122,7 @@ async fn main() {
         );
     }
     else {
-        let http2_listener = Arc::new(TcpListener::bind(format!("0.0.0.0:{}", 8001)).await.unwrap());
-        let http2_service = app.into_make_service_with_connect_info::<SocketAddr>();
-
-        tokio::join!(
-            accept_http_connection(http_listener, http_service.clone()),
-            accept_http_connection(http2_listener, http2_service.clone())
-        );
+        accept_http_connection(http_listener, http_service.clone()).await;
     }
 }
 
