@@ -128,7 +128,7 @@ pub async fn fetch_carnage_report(carnage_report_id: Uuid) -> Result<CarnageRepo
 pub struct KillEvent {
     pub killer: String,
     pub killed: String,
-    pub time: String,
+    pub time: i64,
     pub kill_type: i32,
 }
 
