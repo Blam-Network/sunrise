@@ -8,10 +8,13 @@ use axum::{
     routing::get,
     Router,
 };
+use axum::body::Body;
 use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
 use axum::extract::Request;
 use dotenv::dotenv;
 use hyper::body::Incoming;
+use hyper::{Response, StatusCode};
+use hyper::service::service_fn;
 use crate::features::blam_network::BlamNetwork;
 use crate::features::common::database::migrations::run_migrations;
 use crate::features::common::title_server::APIFeature;
@@ -110,7 +113,7 @@ async fn main() {
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))
             .unwrap();
         server_config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec(), b"http/1.0".to_vec()];
-        let https_listener = Arc::new(TcpListener::bind(format!("0.0.0.0:{}", https_port)).await.unwrap());
+        let https_listener = TcpListener::bind(format!("0.0.0.0:{}", https_port)).await.unwrap();
         let tls_acceptor = TlsAcceptor::from(Arc::new(server_config));
         let https_service = app.into_make_service_with_connect_info::<SocketAddr>();
 
@@ -118,7 +121,7 @@ async fn main() {
 
         tokio::join!(
             accept_http_connection(http_listener, http_service.clone()),
-            accept_https_connection(https_listener, Arc::new(tls_acceptor), https_service.clone())
+            accept_https_connection(Arc::new(https_listener), Arc::new(tls_acceptor), https_service.clone())
         );
     }
     else {
@@ -142,57 +145,69 @@ fn load_private_key(filename: String) -> io::Result<PrivateKeyDer<'static>> {
     rustls_pemfile::private_key(&mut reader).map(|key| key.unwrap())
 }
 
+
 async fn accept_http_connection(
-    listener: Arc<TcpListener>,
+    listener: Arc<TcpListener>, // Use Arc to share listener across tasks
     mut make_service: IntoMakeServiceWithConnectInfo<Router, SocketAddr>,
 ) {
     loop {
+        let listener = Arc::clone(&listener); // Clone Arc to move into the spawned task
+
         let (socket, remote_addr) = listener.accept().await.unwrap();
         let tower_service = unwrap_infallible(make_service.call(remote_addr).await);
-        let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
-            tower_service.clone().oneshot(request)
-        });
 
-        if let Err(err) = server::conn::auto::Builder::new(TokioExecutor::new())
-            .http1()
-            .preserve_header_case(true)
-            .title_case_headers(true)
-            .serve_connection(TokioIo::new(socket), hyper_service)
-            .await
-        {
-            eprintln!("failed to serve connection: {err:#}");
-        }
+        tokio::spawn(async move {
+            let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
+                tower_service.clone().oneshot(request)
+            });
+
+            if let Err(err) = server::conn::auto::Builder::new(TokioExecutor::new())
+                .http1()
+                .preserve_header_case(true)
+                .title_case_headers(true)
+                .serve_connection(TokioIo::new(socket), hyper_service)
+                .await
+            {
+                eprintln!("Failed to serve connection: {err:#}");
+            }
+        });
     }
 }
 
+
 async fn accept_https_connection(
-    listener: Arc<TcpListener>,
+    listener: Arc<TcpListener>, // Use Arc to share listener across tasks
     tls_acceptor: Arc<TlsAcceptor>,
     mut make_service: IntoMakeServiceWithConnectInfo<Router, SocketAddr>,
 ) {
     loop {
+        let listener = Arc::clone(&listener); // Clone Arc to move into the spawned task
+        let tls_acceptor = Arc::clone(&tls_acceptor); // Clone Arc to move into the spawned task
         let (socket, remote_addr) = listener.accept().await.unwrap();
-        let tls_stream = match tls_acceptor.accept(socket).await {
-            Ok(tls_stream) => tls_stream,
-            Err(err) => {
-                eprintln!("TLS handshake error: {err:#}");
-                continue;
-            }
-        };
         let tower_service = unwrap_infallible(make_service.call(remote_addr).await);
-        let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
-            tower_service.clone().oneshot(request)
-        });
 
-        if let Err(err) = server::conn::auto::Builder::new(TokioExecutor::new())
-            .http1()
-            .preserve_header_case(true)
-            .title_case_headers(true)
-            .serve_connection(TokioIo::new(tls_stream), hyper_service)
-            .await
-        {
-            eprintln!("failed to serve connection: {err:#}");
-        }
+        tokio::spawn(async move {
+            let tls_stream = match tls_acceptor.accept(socket).await {
+                Ok(tls_stream) => tls_stream,
+                Err(err) => {
+                    eprintln!("TLS handshake error: {err:#}");
+                    return
+                }
+            };
+            let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
+                tower_service.clone().oneshot(request)
+            });
+
+            if let Err(err) = server::conn::auto::Builder::new(TokioExecutor::new())
+                .http1()
+                .preserve_header_case(true)
+                .title_case_headers(true)
+                .serve_connection(TokioIo::new(tls_stream), hyper_service)
+                .await
+            {
+                eprintln!("failed to serve connection: {err:#}");
+            }
+        });
     }
 }
 
