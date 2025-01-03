@@ -1,6 +1,7 @@
 use serde::Serialize;
-use sqlx::{FromRow, Error};
+use sqlx::{FromRow, PgPool, Transaction, Error, PgConnection};
 use uuid::Uuid;
+use chrono::NaiveDateTime;
 use crate::features::common::database::get_connection_pool;
 
 #[derive(Debug, Serialize, FromRow)]
@@ -21,7 +22,59 @@ pub struct CarnageReportPlayer {
     pub background_emblem: i32,
     pub service_tag: String,
     pub player_team: i32,
+    pub games_played: i16,
+    pub games_completed: i16,
+    pub games_won: i16,
+    pub games_tied: i16,
+    pub rounds_completed: i16,
+    pub rounds_won: i16,
+    pub in_round_score: i16,
+    pub in_game_total_score: i16,
+    pub kills: i16,
+    pub assists: i16,
+    pub deaths: i16,
+    pub betrayals: i16,
+    pub suicides: i16,
+    pub most_kills_in_a_row: i16,
+    pub seconds_alive: i16,
+    pub ctf_flag_scores: i16,
+    pub ctf_flag_grabs: i16,
+    pub ctf_flag_carrier_kills: i16,
+    pub ctf_flag_returns: i16,
+    pub assault_bomb_arms: i16,
+    pub assault_bomb_grabs: i16,
+    pub assault_bomb_disarms: i16,
+    pub assault_bomb_detonations: i16,
+    pub oddball_time_with_ball: i16,
+    pub oddball_unused: i16,
+    pub oddball_kills_as_carrier: i16,
+    pub oddball_ball_carrier_kills: i16,
+    pub king_time_on_hill: i16,
+    pub king_total_control_time: i16,
+    pub king_unused0: i16,
+    pub king_unused1: i16,
+    pub unused0: i16,
+    pub unused1: i16,
+    pub unused2: i16,
+    pub vip_takedowns: i16,
+    pub vip_kills_as_vip: i16,
+    pub vip_guard_time: i16,
+    pub vip_time_as_vip: i16,
+    pub vip_lives_as_vip: i16,
+    pub juggernaut_kills: i16,
+    pub juggernaut_kills_as_juggernaut: i16,
+    pub juggernaut_total_control_time: i16,
+    pub total_wp: i16,
+    pub juggernaut_unused: i16,
+    pub territories_owned: i16,
+    pub territories_captures: i16,
+    pub territories_ousts: i16,
+    pub territories_time_in_territory: i16,
+    pub infection_zombie_kills: i16,
+    pub infection_infections: i16,
+    pub infection_time_as_human: i16,
 }
+
 
 #[derive(Debug, Serialize, FromRow)]
 pub struct CarnageReportTeam {
@@ -30,63 +83,11 @@ pub struct CarnageReportTeam {
     pub score: i16,
 }
 
-
-pub async fn get_player_stats(
-    carnage_report_id: Uuid,
-) -> Result<Vec<CarnageReportPlayer>, Error> {
-    let query = r#"
-        SELECT crp.player_name,
-               crp.global_statistics_highest_skill as highest_skill,
-               crp.host_stats_global_rank as rank,
-               crp.host_stats_global_grade as grade,
-               crp.standing + 1 as place,
-               crp.score,
-               crp.primary_color,
-               crp.secondary_color,
-               crp.tertiary_color,
-               crp.emblem_primary_color,
-               crp.emblem_secondary_color,
-               crp.emblem_background_color,
-               crp.foreground_emblem,
-               crp.background_emblem,
-               crp.service_tag,
-               crp.player_team
-        FROM halo3.carnage_report_player crp
-        WHERE crp.carnage_report_id = $1;
-    "#;
-
-    let players = sqlx::query_as::<_, CarnageReportPlayer>(query)
-        .bind(carnage_report_id)
-        .fetch_all(get_connection_pool().await)
-        .await?;
-
-    Ok(players)
-}
-
-pub async fn get_team_stats(
-    carnage_report_id: Uuid,
-) -> Result<Vec<CarnageReportTeam>, Error> {
-    let query = r#"
-        SELECT crt.team_index,
-               crt.standing + 1 as place,
-               crt.score
-        FROM halo3.carnage_report_team crt
-        WHERE crt.carnage_report_id = $1;
-    "#;
-
-    let teams = sqlx::query_as::<_, CarnageReportTeam>(query)
-        .bind(carnage_report_id)
-        .fetch_all(get_connection_pool().await)
-        .await.unwrap();
-
-    Ok(teams)
-}
-
 #[derive(Debug, FromRow)]
 pub struct CarnageReport {
     pub team_game: bool,
-    pub start_time: chrono::NaiveDateTime,
-    pub finish_time: chrono::NaiveDateTime,
+    pub start_time: NaiveDateTime,
+    pub finish_time: NaiveDateTime,
     pub game_variant_name: Option<String>,
     pub map_variant_name: Option<String>,
     pub map_id: Option<i32>,
@@ -96,7 +97,19 @@ pub struct CarnageReport {
     pub duration: String,
 }
 
-pub async fn fetch_carnage_report(carnage_report_id: Uuid) -> Result<CarnageReport, Error> {
+#[derive(Serialize, FromRow)]
+pub struct KillEvent {
+    pub killer: String,
+    pub killed: String,
+    pub time: String,
+    pub kill_type: i32,
+}
+
+// Function to fetch carnage report
+pub async fn fetch_carnage_report(
+    carnage_report_id: Uuid,
+    transaction: &mut PgConnection,
+) -> Result<CarnageReport, Error> {
     let query = r#"
         SELECT
             cr.team_game,
@@ -116,23 +129,70 @@ pub async fn fetch_carnage_report(carnage_report_id: Uuid) -> Result<CarnageRepo
         WHERE cr.id = $1
     "#;
 
-    let report = sqlx::query_as::<_, CarnageReport>(query)
+    sqlx::query_as::<_, CarnageReport>(query)
         .bind(carnage_report_id)
-        .fetch_one(get_connection_pool().await)
-        .await?;
-
-    Ok(report)
+        .fetch_one(&mut *transaction)
+        .await
 }
 
-#[derive(Serialize, FromRow)]
-pub struct KillEvent {
-    pub killer: String,
-    pub killed: String,
-    pub time: String,
-    pub kill_type: i32,
+// Function to fetch player stats
+pub async fn get_player_stats(
+    carnage_report_id: Uuid,
+    transaction: &mut PgConnection,
+) -> Result<Vec<CarnageReportPlayer>, Error> {
+    let query = r#"
+        SELECT crp.player_name,
+               crp.global_statistics_highest_skill as highest_skill,
+               crp.host_stats_global_rank as rank,
+               crp.host_stats_global_grade as grade,
+               crp.standing + 1 as place,
+               crp.score,
+               crp.primary_color,
+               crp.secondary_color,
+               crp.tertiary_color,
+               crp.emblem_primary_color,
+               crp.emblem_secondary_color,
+               crp.emblem_background_color,
+               crp.foreground_emblem,
+               crp.background_emblem,
+               crp.service_tag,
+               crp.player_team,
+               crps.*,
+        FROM halo3.carnage_report_player crp
+        LEFT JOIN halo3.carnage_report_player_statistics crps on crp.player_index = crps.player_index
+        WHERE crp.carnage_report_id = $1;
+    "#;
+
+    sqlx::query_as::<_, CarnageReportPlayer>(query)
+        .bind(carnage_report_id)
+        .fetch_all(transaction)
+        .await
 }
 
-pub async fn get_kill_events(carnage_report_id: Uuid) -> Result<Vec<KillEvent>, Error> {
+// Function to fetch team stats
+pub async fn get_team_stats(
+    carnage_report_id: Uuid,
+    transaction: &mut PgConnection,
+) -> Result<Vec<CarnageReportTeam>, Error> {
+    let query = r#"
+        SELECT crt.team_index,
+               crt.standing + 1 as place,
+               crt.score
+        FROM halo3.carnage_report_team crt
+        WHERE crt.carnage_report_id = $1;
+    "#;
+
+    sqlx::query_as::<_, CarnageReportTeam>(query)
+        .bind(carnage_report_id)
+        .fetch_all(transaction)
+        .await
+}
+
+// Function to fetch kill events
+pub async fn get_kill_events(
+    carnage_report_id: Uuid,
+    transaction: &mut PgConnection,
+) -> Result<Vec<KillEvent>, Error> {
     let query = r#"
         SELECT
             crp.player_name AS killer,
@@ -151,11 +211,25 @@ pub async fn get_kill_events(carnage_report_id: Uuid) -> Result<Vec<KillEvent>, 
             crek.carnage_report_id = $1;
     "#;
 
-    // Execute the query and map the results to KillEvent struct
-    let rows = sqlx::query_as::<_, KillEvent>(query)
+    sqlx::query_as::<_, KillEvent>(query)
         .bind(carnage_report_id)
-        .fetch_all(get_connection_pool().await)
-        .await.unwrap();
+        .fetch_all(transaction)
+        .await
+}
 
-    Ok(rows)
+// Main function to fetch all related data using a transaction
+pub async fn fetch_carnage_report_with_details(
+    carnage_report_id: Uuid,
+) -> Result<(CarnageReport, Vec<CarnageReportPlayer>, Vec<CarnageReportTeam>, Vec<KillEvent>), Error> {
+    let pool = get_connection_pool().await;
+    let mut transaction = pool.begin().await?;
+
+    let report = fetch_carnage_report(carnage_report_id, &mut transaction).await?;
+    let players = get_player_stats(carnage_report_id, &mut transaction).await?;
+    let teams = get_team_stats(carnage_report_id, &mut transaction).await?;
+    let kill_events = get_kill_events(carnage_report_id, &mut transaction).await?;
+
+    transaction.commit().await?;
+
+    Ok((report, players, teams, kill_events))
 }
