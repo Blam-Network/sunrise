@@ -32,7 +32,6 @@ pub struct CarnageReportPlayer {
     pub in_game_total_score: i16,
     pub kills: i16,
     pub assists: i16,
-    pub deaths: i16,
     pub betrayals: i16,
     pub suicides: i16,
     pub most_kills_in_a_row: i16,
@@ -101,7 +100,7 @@ pub struct CarnageReport {
 pub struct KillEvent {
     pub killer: String,
     pub killed: String,
-    pub time: String,
+    pub time: i64,
     pub kill_type: i32,
 }
 
@@ -157,9 +156,11 @@ pub async fn get_player_stats(
                crp.background_emblem,
                crp.service_tag,
                crp.player_team,
-               crps.*,
+               crps.*
         FROM halo3.carnage_report_player crp
-        LEFT JOIN halo3.carnage_report_player_statistics crps on crp.player_index = crps.player_index
+        LEFT JOIN halo3.carnage_report_player_statistics crps
+            ON crp.player_index = crps.player_index
+            AND crp.carnage_report_id = crps.carnage_report_id
         WHERE crp.carnage_report_id = $1;
     "#;
 
@@ -197,7 +198,7 @@ pub async fn get_kill_events(
         SELECT
             crp.player_name AS killer,
             crp2.player_name AS killed,
-            (crek."time" / 60) || ':' || LPAD((crek."time" % 60)::TEXT, 2, '0') AS time,
+            crek."time",
             crek.kill_type
         FROM
             halo3.carnage_report_event_kill crek
