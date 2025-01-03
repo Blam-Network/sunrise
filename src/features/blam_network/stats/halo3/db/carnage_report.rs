@@ -32,6 +32,7 @@ pub struct CarnageReportPlayer {
     pub in_game_total_score: i16,
     pub kills: i16,
     pub assists: i16,
+    pub deaths: i16,
     pub betrayals: i16,
     pub suicides: i16,
     pub most_kills_in_a_row: i16,
