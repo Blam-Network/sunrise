@@ -24,7 +24,7 @@ use sunrise_private::features::lsp::web::WebstatsServer;
 #[cfg(feature = "sunrise_private")]
 use sunrise_private::features::PrivateAPIFeature;
 use tokio::net::TcpListener;
-use tower_http::trace::TraceLayer;
+use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use crate::features::lsp::usr::UserStorageServer;
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server;
@@ -35,6 +35,7 @@ use crate::features::lsp::fileshare::FileShareAPI;
 use crate::features::lsp::gameapi_reach::GameAPIReach;
 use crate::features::lsp::reach_presence_api::ReachPresenceAPI;
 use rustls_pki_types::{CertificateDer, PrivateKeyDer};
+use sunrise_private::features::lsp::fileshare::FileshareServer;
 use tokio::sync::Mutex;
 use tokio_rustls::TlsAcceptor;
 
@@ -53,6 +54,7 @@ pub fn get_api_features() -> Vec<Box<dyn APIFeature>> {
 pub fn get_private_api_features() -> Vec<Box<dyn PrivateAPIFeature>> {
     let mut vector = Vec::<Box<dyn PrivateAPIFeature>>::new();
     vector.push(Box::new(WebstatsServer {}));
+    vector.push(Box::new(FileshareServer {}));
     vector
 }
 
@@ -94,7 +96,10 @@ async fn main() {
     }
 
     app = app
-        .layer(TraceLayer::new_for_http());
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().include_headers(true))
+        );
 
     let http_service = app.clone().into_make_service_with_connect_info::<SocketAddr>();
     let http_listener = Arc::new(TcpListener::bind(format!("0.0.0.0:{}", http_port)).await.unwrap());
