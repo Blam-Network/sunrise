@@ -7,7 +7,7 @@ edition = "2021"
 tokio = { version =  "1.42.0", features = ["rt-multi-thread", "full"] }
 axum = { version = "0.8.0-rc.1", features = ["multipart", "tracing", "macros"] }
 bytes = { version = "1.9.0", features = ["std"] }
-blf_lib = { git = "https://github.com/Blam-Network/blf_lib.git", version = "1.4.11"  }
+blf_lib = { git = "https://github.com/Blam-Network/blf_lib.git", version = "1.4.12"  }
 sqlx = { version = "0.8.2", features = ["postgres", "runtime-tokio", "migrate", "uuid", "time", "chrono", "json" ]}
 binrw = "0.14.1"
 serde-hex = { git = "https://github.com/Blam-Network/serde-hex.git", version = "0.1.0" }
@@ -30,6 +30,7 @@ rustls = "0.23.20"
 rustls-pemfile = "2.2.0"
 rustls-pki-types = "1.10.1"
 tokio-rustls = "0.26.1"
+num = "0.4.3"
 
 [features]
 default = ["sunrise_private"]
