@@ -153,9 +153,9 @@ from (
 ) crp;
 
 
-CREATE OR REPLACE PROCEDURE halo3.upsert_service_records_from_multiplayer_match(carnage_report_id UUID)
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE PROCEDURE halo3.upsert_service_records_from_multiplayer_match(IN submitted_report_id uuid)
+ LANGUAGE plpgsql
+AS $procedure$
 BEGIN
     -- Upsert service records based on the carnage_report_id filter
 INSERT INTO halo3.service_record (
@@ -247,8 +247,8 @@ SELECT
     crp.matchmade_unranked_games_played,
     crp.matchmade_unranked_games_completed,
     crp.custom_games_completed
-FROM carnage_report_player crp
-WHERE crp.carnage_report_id = $1  -- Referencing the input parameter
+FROM halo3.carnage_report_player crp
+WHERE crp.carnage_report_id = submitted_report_id
   AND crp.player_xuid != 0
       AND (crp.player_xuid & 54043195528445952) = 0
 ON CONFLICT (player_xuid)
@@ -296,4 +296,5 @@ ON CONFLICT (player_xuid)
            matchmade_unranked_games_completed = EXCLUDED.matchmade_unranked_games_completed,
            custom_games_completed = EXCLUDED.custom_games_completed;
 END;
-$$;
+$procedure$
+;
