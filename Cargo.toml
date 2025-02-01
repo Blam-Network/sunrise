@@ -31,6 +31,7 @@ rustls-pemfile = "2.2.0"
 rustls-pki-types = "1.10.1"
 tokio-rustls = "0.26.1"
 num = "0.4.3"
+reqwest = "0.12.12"
 
 [features]
 default = ["sunrise_private"]
