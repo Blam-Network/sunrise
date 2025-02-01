@@ -21,7 +21,7 @@ async fn initialize_pool() -> Result<PgPool, sqlx::Error> {
 
     // Create and return the connection pool
     sqlx::postgres::PgPoolOptions::new()
-        .acquire_timeout(Duration::from_secs(5))
+        .acquire_timeout(Duration::from_secs(10))
         .connect(&database_url).await
 }
 

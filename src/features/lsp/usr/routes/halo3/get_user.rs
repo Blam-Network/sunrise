@@ -14,7 +14,7 @@ blf_file!(
         _blf: s_blf_chunk_start_of_file,
         athr: s_blf_chunk_author,
         fupd: s_blf_chunk_player_data,
-        srid: s_blf_chunk_service_record,
+        //srid: s_blf_chunk_service_record,
         // fubh
         // filq
         _eof: s_blf_chunk_end_of_file
@@ -34,7 +34,7 @@ pub async fn get_user(Path((_, _, _, xuid)): Path<(String, String, String, Strin
             _blf: s_blf_chunk_start_of_file::new("halo3 user", byte_order_mark::default()),
             athr: s_blf_chunk_author::for_build::<v12070_08_09_05_2031_halo3_ship>(),
             fupd: s_blf_chunk_player_data::default(),
-            srid: s_blf_chunk_service_record::default(),
+            //srid: s_blf_chunk_service_record::default(),
             _eof: s_blf_chunk_end_of_file::default()
         };
 
@@ -45,7 +45,7 @@ pub async fn get_user(Path((_, _, _, xuid)): Path<(String, String, String, Strin
             _blf: s_blf_chunk_start_of_file::new("halo3 user", byte_order_mark::default()),
             athr: s_blf_chunk_author::for_build::<v12070_08_09_05_2031_halo3_ship>(),
             fupd: get_player_data(&pool, player_xuid).await.unwrap_or(s_blf_chunk_player_data::default()),
-            srid: get_service_record_by_xuid(&pool, player_xuid).await.unwrap_or(s_blf_chunk_service_record::default()),
+            //srid: get_service_record_by_xuid(&pool, player_xuid).await.unwrap_or(s_blf_chunk_service_record::default()),
             _eof: s_blf_chunk_end_of_file::default()
         };
 
