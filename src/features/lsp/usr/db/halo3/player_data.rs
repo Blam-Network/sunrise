@@ -15,15 +15,15 @@ pub async fn get_player_data(pool: &PgPool, xuid: u64) -> Result<s_blf_chunk_pla
     let mut bungie_user_role = 0;
 
     // BNet players get the 7th column
-    bungie_user_role += 0x0001;
+    bungie_user_role += 1;
     if row.get::<bool, _>("is_pro") {
-        bungie_user_role += 0x0010;
+        bungie_user_role += 2;
     }
     if row.get::<bool, _>("is_bungie") {
-        bungie_user_role += 0x0100;
+        bungie_user_role += 4;
     }
     if row.get::<bool, _>("has_recon") || row.get::<bool, _>("road_to_recon_completed") {
-        bungie_user_role += 0x1000;
+        bungie_user_role += 8;
     }
 
     let player_data = s_blf_chunk_player_data {
