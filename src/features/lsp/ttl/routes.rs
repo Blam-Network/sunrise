@@ -1,1 +1,2 @@
 pub mod dynamic_matchmaking_nightmap;
+pub mod dynamic_matchmaking_statistics;

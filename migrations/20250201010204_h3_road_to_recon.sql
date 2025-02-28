@@ -9,7 +9,6 @@ BEGIN
         VALUES (player_xuid_in, true);
 ELSE
 
-    -- If it exists, update the highest_skill
 UPDATE halo3.player_data
 SET road_to_recon_completed = true
 WHERE player_xuid = player_xuid_in;
