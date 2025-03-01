@@ -14,9 +14,10 @@ pub async fn get_user(Path((_, _, _, xuid)): Path<(String, String, String, Strin
     let player_xuid = u64::from_str_radix(&xuid, 16).unwrap();
     let pool = try_get_connection_pool().await;
 
-    let mut blf_file_builder = BlfFileBuilder::new()
-        .add_chunk(s_blf_chunk_start_of_file::new("halo3 user", byte_order_mark::default()))
-        .add_chunk(s_blf_chunk_author::for_build::<v12070_08_09_05_2031_halo3_ship>());
+    let mut blf_file_builder = BlfFileBuilder::new();
+        blf_file_builder
+            .add_chunk(s_blf_chunk_start_of_file::new("halo3 user", byte_order_mark::default()))
+            .add_chunk(s_blf_chunk_author::for_build::<v12070_08_09_05_2031_halo3_ship>());
 
     // If we can't connect to the database, return a generic user file.
     if pool.is_err() {

@@ -7,7 +7,7 @@ edition = "2021"
 tokio = { version =  "1.42.0", features = ["rt-multi-thread", "full"] }
 axum = { version = "0.8.0-rc.1", features = ["multipart", "tracing", "macros"] }
 bytes = { version = "1.9.0", features = ["std"] }
-blf_lib = { git = "https://github.com/Blam-Network/blf_lib.git", version = "1.5.1"  }
+blf_lib = { git = "https://github.com/Blam-Network/blf_lib.git", version = "1.5.3"  }
 sqlx = { version = "0.8.2", features = ["postgres", "runtime-tokio", "migrate", "uuid", "time", "chrono", "json" ]}
 binrw = "0.14.1"
 serde-hex = { git = "https://github.com/Blam-Network/serde-hex.git", version = "0.1.0" }
