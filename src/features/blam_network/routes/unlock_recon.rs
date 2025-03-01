@@ -71,7 +71,6 @@ pub async fn unlock_recon(headers: HeaderMap) -> impl IntoResponse {
     });
 
     if all_unlocked {
-
         let pool = get_connection_pool().await;
         sqlx::query("CALL halo3.unlock_recon($1)")
             .bind(xuid as i64)

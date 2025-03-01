@@ -1,20 +1,12 @@
 use std::io::Cursor;
 use image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
-use axum::Json;
-use uuid::Uuid;
-use crate::features::blam_network::stats;
 use axum::{
-    extract::{Query, Path},
+    extract::Query,
     response::{IntoResponse, Response},
-    routing::get,
-    Router,
 };
-use std::net::SocketAddr;
 use axum::body::Body;
 use image::imageops::FilterType;
 use serde::Deserialize;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
 
 #[derive(Debug, Deserialize)]
 pub struct Emblem {

@@ -1,7 +1,5 @@
-use axum::{extract::Path, Json, response::IntoResponse};
+use axum::{extract::Path, response::IntoResponse};
 use axum::http::HeaderMap;
-use crate::features::blam_network::stats;
-use serde::Serialize;
 use uuid::Uuid;
 use crate::features::blam_network::stats::halo3::db::carnage_report::fetch_carnage_report_with_details;
 

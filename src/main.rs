@@ -36,6 +36,7 @@ use crate::features::lsp::gameapi_reach::GameAPIReach;
 use crate::features::lsp::reach_presence_api::ReachPresenceAPI;
 use rustls_pki_types::{CertificateDer, PrivateKeyDer};
 use sunrise_private::features::lsp::fileshare::FileshareServer;
+use sunrise_private::features::lsp::gameapi::GameAPIPrivateFeatures;
 use tokio::sync::Mutex;
 use tokio_rustls::TlsAcceptor;
 
@@ -55,6 +56,7 @@ pub fn get_private_api_features() -> Vec<Box<dyn PrivateAPIFeature>> {
     let mut vector = Vec::<Box<dyn PrivateAPIFeature>>::new();
     vector.push(Box::new(WebstatsServer {}));
     vector.push(Box::new(FileshareServer {}));
+    vector.push(Box::new(GameAPIPrivateFeatures {}));
     vector
 }
 
