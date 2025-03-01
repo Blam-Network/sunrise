@@ -26,7 +26,7 @@ pub async fn generate_matchmaking_statistics() -> impl IntoResponse {
             FROM halo3.carnage_report_player crp
             INNER JOIN halo3.carnage_report cr ON cr.id = crp.carnage_report_id
             INNER JOIN halo3.carnage_report_matchmaking_options crmo ON crmo.id = crp.carnage_report_id
-            WHERE cr.finish_time >= NOW() - INTERVAL '1 day'
+            WHERE cr.finish_time >= NOW() - INTERVAL '1 hour'
             ORDER BY crp.player_xuid, cr.finish_time DESC
         ) AS hopper_players
         GROUP BY hopper_players.hopper_identifier
