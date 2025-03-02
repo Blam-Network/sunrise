@@ -88,18 +88,12 @@ pub async fn generate_matchmaking_nightmap_image() -> impl IntoResponse {
 
     let (width, height) = img.dimensions();
     let white = Rgb([255, 255, 255]);
-    let lightblue = Rgb([100, 125, 255]);
 
     // Add predefined dots to the image
     for (lat, lon) in get_lat_longs().await.unwrap() {
         let (x, y) = lat_lon_to_pixel(lat, lon, width - 50, height + 40);
         if x < width && y < height {
             img.put_pixel(x + 15, y - 5, white);
-
-            img.put_pixel(x + 16, y - 5, lightblue);
-            img.put_pixel(x + 14, y - 5, lightblue);
-            img.put_pixel(x + 15, y - 4, lightblue);
-            img.put_pixel(x + 15, y - 6, lightblue);
         }
     }
 
